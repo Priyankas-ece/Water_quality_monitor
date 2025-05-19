@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WATER QUALITY MONITOR</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #2b5876, #4e4376);
+            color: #fff;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        label {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Button */
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #28a745;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        /* Output Box */
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+
+        .description {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Circle Chart Container */
+        .chart-container {
+            width: 200px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Water Quality Monitor</h1>
+
+        <div class="input-group">
+            <label for="ppm">Enter TDS (PPM):</label>
+            <input type="number" id="ppm" required>
+        </div>
+
+        <div class="input-group">
+            <label for="temp">Enter Temperature (°C):</label>
+            <input type="number" id="temp" required>
+        </div>
+
+        <button onclick="checkWaterQuality()">Check Water Quality</button>
+
+        <!-- Visual Circle Chart for TDS -->
+        <div class="chart-container">
+            <canvas id="tdsChart"></canvas>
+        </div>
+
+        <!-- Water Quality Results -->
+        <div class="result-box">
+            <h2 id="result">Water Quality: </h2>
+            <p class="description" id="details"></p>
+            <p class="description" id="treatment"></p>
+            <p class="description" id="tempImpact"></p>
+        </div>
+    </div>
+
+    <script>
+        let tdsChart;
+
+        function checkWaterQuality() {
+            let ppm = parseFloat(document.getElementById("ppm").value);
+            let temp = parseFloat(document.getElementById("temp").value);
+            let result = "";
+            let details = "";
+            let treatment = "";
+            let tempImpact = "";
+            let color = "#00ff00"; // Default green color
+
+            // Determine Water Quality Based on TDS
+            if (ppm >= 0 && ppm <= 39) {
+                result = "Very Low TDS Water (Not suitable for drinking)";
+                details = "Ultra-pure water or deionised water - lacks minerals.";
+                treatment = "No treatment needed. Used only for lab purposes.";
+                color = "#00ff00"; // Green
+            } else if (ppm >= 40 && ppm <= 59) {
+                result = "Low TDS Water - Good for drinking purposes";
+                details = "Soft water with essential minerals and no contaminants.";
+                treatment = "No major treatment needed, can be boiled for removing bacteria";
+                color = "#ffcc00"; // Yellow
+            } else if (ppm > 60 && ppm <= 80) {
+                result = "Poor quality Water - high level of contaminats";
+                details = "water contains heavy contaminants and high level of impurites";
+                treatment = "Desalination or industrial treatment required. can be filtered for removing solids.";
+                color = "#ff3300"; // Red 
+            } 
+
+            // Determine Temperature Impact
+            if (temp >= 0 && temp <= 5) {
+                tempImpact = "Cold water, purer but may taste flat.";
+            } else if (temp > 5 && temp <= 15) {
+                tempImpact = "Cool water, optimal for drinking.";
+            } else if (temp > 15 && temp <= 25) {
+                tempImpact = "Normal temperature, best for testing.";
+            } else if (temp > 25 && temp <= 35) {
+                tempImpact = "Normal temperature, slightly higher TDS.";
+            } else if (temp > 35 && temp <= 50) {
+                tempImpact = "Warm water, increased TDS and taste changes.";
+            } else if (temp > 50 && temp <= 70) {
+                tempImpact = "Hot water, reduces oxygen levels.";
+            } else {
+                tempImpact = "Boiling water, highest TDS with mineral deposits.";
+            }
+
+            // Update UI with results
+            document.getElementById("result").innerText = result;
+            document.getElementById("details").innerText = `Description: ${details}`;
+            document.getElementById("treatment").innerText = `Recommended Treatment: ${treatment}`;
+            document.getElementById("tempImpact").innerText = `Temperature Effect: ${tempImpact}`;
+
+            // Update Circle Chart
+            if (tdsChart) tdsChart.destroy();
+            tdsChart = new Chart(document.getElementById("tdsChart"), {
+                type: "doughnut",
+                data: {
+                    datasets: [{
+                        data: [ppm, 2000 - ppm],
+                        backgroundColor: [color, "#dddddd"]
+                    }]
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
